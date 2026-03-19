@@ -1,6 +1,5 @@
 # InsightStream – AI PDF RAG Platform
 
-> **Detaylı dokümantasyon:** [DOCUMENTATION.md](./DOCUMENTATION.md) – Projeyi hiç bilmeyenler için eksiksiz kurulum, API referansı ve sorun giderme rehberi.
 
 ## Overview
 
