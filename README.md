@@ -147,6 +147,32 @@ npm run dev
 Then open `http://localhost:5173` in your browser.  
 Make sure the backend (`uvicorn app.main:app`) is running on port `8000`.
 
+## Ekran Görüntüleri
+
+`docker compose up -d` sonrası uygulama `http://localhost` üzerinden açılır.
+
+PDF yükleme ekranı:
+
+![InsightStream PDF upload](./Ekran Görüntüsü (708).png)
+
+PDF yükleme ekranı (dark görünüm):
+
+![InsightStream PDF upload (dark)](./Ekran Görüntüsü (709).png)
+
+PDF yüklendikten sonra chat (streaming yanıt):
+
+![InsightStream chat](./Ekran Görüntüsü (713).png)
+
+Chat ekranı (örnek - devam):
+
+![InsightStream chat (2)](./Ekran Görüntüsü (716).png)
+
+## Gemini Ücretsiz API Key Notu
+
+`GOOGLE_API_KEY` set edildiğinde uygulama Gemini için yalnızca API-key modunu kullanır; Vertex/ADC’ye düşmez.
+
+Ücretsiz kota/tahsis tükenirse streaming tarafında kısa bir placeholder mesaj görebilirsin (kota yenilenene kadar tekrar dene).
+
 ## Generated‑by‑AI Notice
 
 - The **entire backend architecture**, modules, and this README were produced with the help of an **AI coding assistant**.

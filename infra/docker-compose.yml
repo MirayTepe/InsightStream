@@ -45,6 +45,8 @@ services:
     build:
       context: ../backend
       dockerfile: Dockerfile
+    env_file:
+      - ../.env.dev
     environment:
       DATABASE_URL_SYNC: postgresql://postgres:postgres@postgres:5432/insightstream
       REDIS_URL: redis://redis:6379/0
@@ -66,6 +68,8 @@ services:
       context: ../backend
       dockerfile: Dockerfile
     command: celery -A workers.celery_app worker --loglevel=info -Q pdf
+    env_file:
+      - ../.env.dev
     environment:
       DATABASE_URL_SYNC: postgresql://postgres:postgres@postgres:5432/insightstream
       REDIS_URL: redis://redis:6379/0

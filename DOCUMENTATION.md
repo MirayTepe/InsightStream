@@ -454,10 +454,10 @@ npm run build
 - Sync upload sonrası hemen `document_id` kullanılabilir
 - Async upload sonrası job tamamlanana kadar bekleyin
 
-### Vertex AI / Gemini yanıt vermiyor
+### Gemini yanıt vermiyor
 
-- GCP projesi ve Vertex AI API etkin olmalı
-- `GOOGLE_APPLICATION_CREDENTIALS` veya gcloud login
+- Vertex AI kullanıyorsanız: GCP projesi ve Vertex AI API etkin olmalı, ayrıca `GOOGLE_APPLICATION_CREDENTIALS` veya `gcloud login`.
+- Ücretsiz Gemini API key kullanıyorsanız: `GOOGLE_API_KEY` ayarlayın (Docker için `infra/docker-compose.yml` `.env.dev` dosyasını yükler) ve konteynerleri yeniden başlatın.
 - Kimlik bilgisi yoksa placeholder yanıtlar döner
 
 ### Frontend API’ye ulaşamıyor

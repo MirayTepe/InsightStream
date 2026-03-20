@@ -1,7 +1,7 @@
 from typing import List, Tuple
 
 import fitz
-from langchain.text_splitter import RecursiveCharacterTextSplitter
+from langchain_text_splitters import RecursiveCharacterTextSplitter
 
 from app.core.exceptions import PDFProcessingError
 

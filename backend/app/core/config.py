@@ -68,6 +68,17 @@ class Settings(BaseSettings):
     vertex_flash_model: str = "gemini-1.5-flash-001"
     vertex_pro_model: str = "gemini-1.5-pro-001"
 
+    # Gemini API key (ai.google.dev / Google AI Studio).
+    # When set, the app will prefer API-key based Gemini generation over Vertex AI (ADC).
+    google_api_key: str = Field(default="", description="Gemini API key for API-key based access")
+
+    # Gemini API-key embeddings model id.
+    # These are used with the `google.genai` SDK when `GOOGLE_API_KEY` is provided.
+    gemini_embedding_model: str = Field(
+        default="models/gemini-embedding-2-preview",
+        description="Gemini API embeddings model id for API-key based embedding",
+    )
+
     # Text-to-Speech
     tts_voice_name: str = "en-US-Neural2-C"
     tts_language_code: str = "en-US"

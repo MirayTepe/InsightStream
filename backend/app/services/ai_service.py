@@ -67,6 +67,35 @@ class AIService:
         if not texts:
             raise EmbeddingError("No texts to embed.")
 
+        # Free-key mode: API-key varsa (GOOGLE_API_KEY set) sadece API-key ile embedding al.
+        # Bu şekilde Vertex/ADC (Application Default Credentials) aramasına hiç düşmeyiz.
+        if settings.google_api_key:
+            try:
+                import google.genai as genai
+
+                client = genai.Client(api_key=settings.google_api_key)
+                resp = client.models.embed_content(
+                    model=settings.gemini_embedding_model,
+                    contents=texts,
+                )
+                embeddings = getattr(resp, "embeddings", None) or resp.model_dump().get("embeddings")  # type: ignore[union-attr]
+                if embeddings:
+                    vectors = [
+                        (e.values if hasattr(e, "values") else e.get("values"))  # type: ignore[attr-defined]
+                        for e in embeddings
+                    ]
+                    return np.array(vectors, dtype="float32")
+                logger.warning("Gemini API-key embedding returned empty embeddings, using fallback.")
+            except Exception as e:
+                logger.warning("Gemini API-key embedding failed (free-key-only mode): %s", e)
+
+            # Free-key-only mode: Vertex/ADC'e geri dönme, deterministic fallback dön.
+            dim = 768
+            rng = np.random.default_rng(seed=42)
+            return rng.normal(size=(len(texts), dim)).astype("float32")
+
+        # Prefer API-key embeddings when available.
+        # This avoids needing Vertex/ADC credentials for local/dev usage.
         model = self._embed_model()
         if model:
             try:
@@ -115,7 +144,34 @@ class AIService:
             raise RAGError("No context chunks retrieved for RAG.")
         context = "\n\n".join(retrieved_chunks)
         prompt = self._build_prompt(mode, question, context)
-        model = self._gemini(use_pro=self._use_pro_model(mode))
+        use_pro = self._use_pro_model(mode)
+
+        # Free-key mode: API-key varsa Vertex/ADC'ye hiç düşme.
+        if settings.google_api_key:
+            try:
+                import google.genai as genai
+
+                client = genai.Client(api_key=settings.google_api_key)
+                model_name = settings.vertex_pro_model if use_pro else settings.vertex_flash_model
+                response = client.models.generate_content(
+                    model=model_name,
+                    contents=prompt,
+                )
+
+                # google.genai responses usually expose `.text` for convenience.
+                text = getattr(response, "text", None)
+                if text:
+                    return text
+            except Exception as e:
+                logger.warning("Gemini API-key generate failed (free-key-only mode): %s", e)
+
+            return (
+                "Gemini API-key ile yanıt üretilemedi. "
+                "Ücretsiz kota/tahsis tükenmiş olabilir. "
+                "Lütfen API key için Gemini kullanımını kontrol edip tekrar deneyin."
+            )
+
+        model = self._gemini(use_pro=use_pro)
 
         if model:
             try:
@@ -144,8 +200,33 @@ class AIService:
             raise RAGError("No context chunks retrieved for RAG.")
         context = "\n\n".join(retrieved_chunks)
         prompt = self._build_prompt(mode, question, context)
-        model = self._gemini(use_pro=self._use_pro_model(mode))
+        use_pro = self._use_pro_model(mode)
 
+        # Free-key mode: API-key varsa Vertex/ADC'ye hiç düşme.
+        if settings.google_api_key:
+            try:
+                import google.genai as genai
+
+                client = genai.Client(api_key=settings.google_api_key)
+                model_name = settings.vertex_pro_model if use_pro else settings.vertex_flash_model
+
+                for chunk in client.models.generate_content_stream(
+                    model=model_name,
+                    contents=prompt,
+                ):
+                    text = getattr(chunk, "text", None)
+                    if text:
+                        yield text
+                return
+            except Exception as e:
+                logger.warning("Gemini API-key stream failed (free-key-only mode): %s", e)
+                yield (
+                    "Gemini API-key ile streaming yanıt alınamadı. "
+                    "Ücretsiz kota/tahsis tükenmiş olabilir. Lütfen tekrar deneyin."
+                )
+                return
+
+        model = self._gemini(use_pro=use_pro)
         if model:
             try:
                 responses = model.generate_content(prompt, stream=True)
@@ -156,5 +237,4 @@ class AIService:
             except Exception as e:
                 logger.warning("Gemini stream failed: %s", e)
 
-        fallback = "Configure GCP credentials for Vertex AI Gemini to get streaming responses."
-        yield fallback
+        yield "Configure GCP credentials for Vertex AI Gemini to get streaming responses."
